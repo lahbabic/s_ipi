@@ -48,23 +48,6 @@ def check_file_writeable(file_path=""):
 	except:
 		print_err()
 		return False
-
-def check_for_binarys(binarys_array=[]):
-	paths = os.environ["PATH"].split(':') 
-	print(paths)
-	for needed_binary in binarys_array:
-		for path in paths:
-			if os.path.isfile(path+'/'+needed_binary[0]):
-				needed_binary[1] = True
-
-	for needed_binary in binarys_array:
-		print('cheking for '+needed_binary[0]+"...",end="")
-		if not needed_binary[1]:
-			print(W+"["+B+"NOT FOUND"+W+"]")
-			binary = str(needed_binary[0])
-			install_binary(binary)
-		else:
-			print_ok()
 	
 def install_binary(b=""):
 	if input("Do you want to install it? [y/n] ") == 'y':
@@ -83,27 +66,16 @@ def save_file(file_path=""):
 			sys.exit("")
 		print_done()
 	
-def check_for_up_ifaces():
-	print('checking for up interfaces...',end="")
-	try:
-		ifaces = netifaces.interfaces()
-		print_ok()
-		if (ifaces[0] == 'lo') or (ifaces[0] == 'lo0'):
-			ifaces.pop(0)
-		adresses = netifaces.ifaddresses(ifaces[0]) 
-		print(ifaces)
-	except NameError:
-		print_err()
-		sys.exit("")
-
-
+def gateway_ip():
+	gws = netifaces.gateways()
+	gateway_ip = gws['default'][netifaces.AF_INET][0]
+	iface = gws['default'][netifaces.AF_INET][1]
+	return gateway_ip , iface
 
 if __name__ == "__main__":
 	f = "/etc/network/interfaces"
-	#needed_binarys = [['python3-netifaces',False]]
 	check_for_root()
-	#check_for_binarys(needed_binarys)
 	if not check_file_writeable(f):
 		sys.exit("")
 	save_file(f)
-	check_for_up_ifaces()
+	gw_ip , iface = gateway_ip()
