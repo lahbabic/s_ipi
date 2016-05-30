@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 from __future__ import print_function
+from subprocess import Popen, PIPE
 import os, sys
 try:
 	import netifaces
@@ -71,21 +72,38 @@ def install_binary(b=""):
 			sys.exit('Can\'t install '+b)
 	else:
 		sys.exit('Please install needed binarys to run this script')
+
+def save_file(file_path=""):
+	name = file_path.split('/')[-1]
+	print("Saving  "+B+name+W+"...",end="")
+	cmd = (["cp",file_path,file_path+".sav"])
+	with Popen(cmd, stdout=PIPE ,stderr=PIPE) as proc:
+		if not (proc.stderr.read().decode('utf-8') == ""):
+			print_err()
+			sys.exit("")
+		print_done()
 	
 def check_for_up_ifaces():
 	print('checking for up interfaces...',end="")
 	try:
 		ifaces = netifaces.interfaces()
 		print_ok()
-		print(len(ifaces))
+		if (ifaces[0] == 'lo') or (ifaces[0] == 'lo0'):
+			ifaces.pop(0)
+		adresses = netifaces.ifaddresses(ifaces[0]) 
+		print(ifaces)
 	except NameError:
 		print_err()
 		sys.exit("")
 
+
+
 if __name__ == "__main__":
+	f = "/etc/network/interfaces"
 	#needed_binarys = [['python3-netifaces',False]]
 	check_for_root()
 	#check_for_binarys(needed_binarys)
-	if not check_file_writeable("/etc/network/interfaces"):
+	if not check_file_writeable(f):
 		sys.exit("")
+	save_file(f)
 	check_for_up_ifaces()
